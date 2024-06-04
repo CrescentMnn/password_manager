@@ -18,6 +18,9 @@ fn main() {
 
 #[test]
 fn test_hashing(){
+    
+    //costs for the hash function 4-31
+    //DEFAULT_COST = 12
 
     {
         let test_password = "123123";
@@ -25,7 +28,7 @@ fn test_hashing(){
 
         let hash_valid = verify(test_password, &hashed_test_pssw).expect("(-) Failed to verify password");
 
-        assert_eq!(hash_valid, true);
+        assert_eq!(hash_valid, true, "(-) Failed at asserting hash and verify");
     }
 
     {
@@ -34,7 +37,7 @@ fn test_hashing(){
 
         let hash_valid = verify(test_password, &hashed_test_pssw).expect("(-) Failed to verify password");
 
-        assert_eq!(hash_valid, true);
+        assert_eq!(hash_valid, true, "(-) Failed at asserting hash and verify");
     }
 
 }
