@@ -6,6 +6,25 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 //input and output library
 use std::io;
 
+//data structure for passwords
+struct SessionPassword {
+
+    /* 
+
+    where_from refers to where is the password from?
+
+        ex. firefox, spotify
+    
+    password refers to the unhashed password.
+
+    password will only be available after providing a correct user password
+    
+    */
+
+    where_from : String,
+    password : String,
+}
+
 fn main() {
 
     println!("+-----------------------------------+");
