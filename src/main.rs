@@ -132,11 +132,6 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
         //parse stidn 
         passwords_to_create = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
 
-        if passwords_to_create > 255 || passwords_to_create < 1 {
-            println!("Input out of bounds!!\n");
-            return;
-        }
-
         for _i in 1..=passwords_to_create {
 
             println!("Username/Url: ");
