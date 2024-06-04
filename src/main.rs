@@ -1,6 +1,9 @@
 extern crate bcrypt;
 
+//cryptography crate
 use bcrypt::{hash, verify, DEFAULT_COST};
+
+//input and output library
 use std::io;
 
 fn main() {
@@ -8,8 +11,6 @@ fn main() {
     println!("+-----------------------------------+");
     println!("+           Password Manager        +");
     println!("+-----------------------------------+\n\n");
-    
-
 
     println!("This is a simple password manager program which lets users securely store, manage, 
     and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, 
@@ -20,15 +21,26 @@ fn main() {
 
     let mut menu_choice : u8;
 
+    //vector for passwords
+    let mut passwords_vector : Vec<String> = Vec::new();
+
     loop {
         //String for user input
         let mut user_input = String::new();
 
         io::stdin().read_line(&mut user_input).expect("(-) Failed to read line");
 
-        //int for parse
-        menu_choice = match user_input.trim().parse() { Ok(n) => n, Err(_) => { println!("(-) Not a valid number"); continue;} };
+        /* 
+        
+        pub fn trim(&self) -> &str
 
+        Returns a string slice with leading and trailing whitespace removed.
+
+        ‘Whitespace’ is defined according to the terms of the Unicode Derived Core Property White_Space, which includes newlines.
+        
+        */
+
+        menu_choice = match user_input.trim().parse() { Ok(n) => n, Err(_) => { println!("(-) Not a valid number"); continue;} };
 
         if menu_choice < 1 || menu_choice > 2 {
             println!("Number outside of bounds..... try again\n");
@@ -39,49 +51,45 @@ fn main() {
 
     if menu_choice == 1 {
         //go to fn
-        get_user_input();
+        hash_new_password(&mut passwords_vector);
+        println!("{:?}", passwords_vector);
     } else { 
         println!("Exiting....\n");
         return;
     }
     
-    /*
-    let test_password = "123123123";
-
-    let hash_password = hash(test_password, DEFAULT_COST).expect("Failed to hash password");
-    let _ = verify(test_password, &hash_password);
-    println!("Password: {}", test_password);
-    println!("Hashed password: {}\n", hash_password);
-
-    get_user_input();
-    */
 }
 
-fn get_user_input(){
+fn hash_new_password(store: &mut Vec<String>){
 
     println!("\nPlease input a password: ");
     
     //create a buffer
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
-    //println!("{}", buffer.trim());
     
-
-    //let buffer_ref: &str = &buffer.trim();
-
     let hashed_password = hash(buffer.clone(), DEFAULT_COST).expect("(-) Failed password hashing");
     let true_hash = verify(buffer.clone(), &hashed_password).expect("(-) Failed at asserting hash and verify");
     assert_eq!(true_hash, true);
 
     println!("Password: {} \nHashed: {}\n", buffer, hashed_password);
-
+    store.push(hashed_password);
 }
 
 #[test]
 fn test_hashing(){
+
+    /* 
     
-    //costs for the hash function 4-31
-    //DEFAULT_COST = 12
+    pub fn hash<P: AsRef<[u8]>>(password: P, cost: u32) -> BcryptResult<String>
+    
+    pub fn verify<P: AsRef<[u8]>>(password: P, hash: &str) -> BcryptResult<bool>
+
+    cost: 4(min) - 31(max)
+
+    DEFAULT_COST: 12
+    
+    */
 
     {
         let test_password = "123123";
