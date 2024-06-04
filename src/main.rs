@@ -11,10 +11,41 @@ fn main() {
     
 
 
-    println!("This is a simple password manager program which lets users securely store, manage, and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, ensuring that user data is secure. 
-\n\n");
+    println!("This is a simple password manager program which lets users securely store, manage, 
+    and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, 
+    ensuring that user data is secure.\n\n");
+    
+    //main menu
+    println!("1. Hash new password\n2. Exit\n");
+
+    let mut menu_choice : u8;
+
+    loop {
+        //String for user input
+        let mut user_input = String::new();
+
+        io::stdin().read_line(&mut user_input).expect("(-) Failed to read line");
+
+        //int for parse
+        menu_choice = match user_input.trim().parse() { Ok(n) => n, Err(_) => { println!("(-) Not a valid number"); continue;} };
 
 
+        if menu_choice < 1 || menu_choice > 2 {
+            println!("Number outside of bounds..... try again\n");
+        } else {
+            break;
+        }
+    }
+
+    if menu_choice == 1 {
+        //go to fn
+        get_user_input();
+    } else { 
+        println!("Exiting....\n");
+        return;
+    }
+    
+    /*
     let test_password = "123123123";
 
     let hash_password = hash(test_password, DEFAULT_COST).expect("Failed to hash password");
@@ -23,11 +54,12 @@ fn main() {
     println!("Hashed password: {}\n", hash_password);
 
     get_user_input();
+    */
 }
 
 fn get_user_input(){
 
-    println!("Please input a password: ");
+    println!("\nPlease input a password: ");
     
     //create a buffer
     let mut buffer = String::new();
