@@ -30,7 +30,7 @@ impl std::fmt::Debug for SessionPassword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SessionPassword")
             .field("where_from", &self.where_from)
-            .field("password", &"********") // Mask the password for security reasons
+            .field("password", &"***********") // Mask the password for security reasons
             .finish()
     }
 }
@@ -91,26 +91,75 @@ fn main() {
 
 fn hash_new_password(store: &mut Vec<SessionPassword>){
 
-    println!("\nPlease input a username: ");
+    println!("\nYou will have to create a username and give a password for further reading and creating password.\n");
     
-    
-    //create a buffer for username
-    let mut buffer = String::new();
-    io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
-    
-    let username = buffer.trim().to_string();
+    //username and password for programm
+    {
+        println!("\nPlease input a username: ");
+        //create a buffer for username
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
+        
+        let username = buffer.trim().to_string();
 
-    println!("\nPlease input a password: ");
+        println!("\nPlease input a password: ");
 
-    let mut pass_buffer = String::new();
-    io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
+        let mut pass_buffer = String::new();
+        io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
 
-    let new_password = pass_buffer.trim().to_string();
-    
-    //struct instance
-    let new_user_password = SessionPassword { where_from: username, password: new_password, };
-    
-    store.push(new_user_password);
+        let new_password = pass_buffer.trim().to_string();
+
+        let hashed_user = hash(new_password, DEFAULT_COST).expect("(-) Failed at user password hash");
+        
+        //struct instance
+        let new_user_password = SessionPassword { where_from: username, password: hashed_user, };
+        
+        store.push(new_user_password);
+    }
+
+    println!("Now please enter how many passwords you wish to create (MAX 255): ");
+
+    {
+        //store # of passwords user wishes to create
+        let passwords_to_create : u8;
+
+        //buffer for stdin
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
+
+
+        // menu_choice = match user_input.trim().parse() { Ok(n) => n, Err(_) => { println!("(-) Not a valid number"); continue;} };
+        //parse stidn 
+        passwords_to_create = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
+
+        if passwords_to_create > 255 || passwords_to_create < 1 {
+            println!("Input out of bounds!!\n");
+            return;
+        }
+
+        for _i in 1..=passwords_to_create {
+
+            println!("Username/Url: ");
+            //create a buffer for username
+            let mut buffer = String::new();
+            io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
+            
+            let username = buffer.trim().to_string();
+
+            println!("\nPlease input a password: ");
+
+            let mut pass_buffer = String::new();
+            io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
+
+            let new_password = pass_buffer.trim().to_string();
+            
+            //struct instance
+            let new_user_password = SessionPassword { where_from: username, password: new_password, };
+            
+            store.push(new_user_password);
+
+        }
+    }
 }
 
 #[test]
