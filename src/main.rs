@@ -25,6 +25,16 @@ struct SessionPassword {
     password : String,
 }
 
+//allows me to implement {:?} with SessionPassword
+impl std::fmt::Debug for SessionPassword {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SessionPassword")
+            .field("where_from", &self.where_from)
+            .field("password", &"********") // Mask the password for security reasons
+            .finish()
+    }
+}
+
 fn main() {
 
     println!("+-----------------------------------+");
@@ -41,7 +51,7 @@ fn main() {
     let mut menu_choice : u8;
 
     //vector for passwords
-    let mut passwords_vector : Vec<String> = Vec::new();
+    let mut passwords_vector : Vec<SessionPassword> = Vec::new();
 
     loop {
         //String for user input
@@ -79,20 +89,28 @@ fn main() {
     
 }
 
-fn hash_new_password(store: &mut Vec<String>){
+fn hash_new_password(store: &mut Vec<SessionPassword>){
 
-    println!("\nPlease input a password: ");
+    println!("\nPlease input a username: ");
     
-    //create a buffer
+    
+    //create a buffer for username
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
     
-    let hashed_password = hash(buffer.clone(), DEFAULT_COST).expect("(-) Failed password hashing");
-    let true_hash = verify(buffer.clone(), &hashed_password).expect("(-) Failed at asserting hash and verify");
-    assert_eq!(true_hash, true);
+    let username = buffer.trim().to_string();
 
-    println!("Password: {} \nHashed: {}\n", buffer, hashed_password);
-    store.push(hashed_password);
+    println!("\nPlease input a password: ");
+
+    let mut pass_buffer = String::new();
+    io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
+
+    let new_password = pass_buffer.trim().to_string();
+    
+    //struct instance
+    let new_user_password = SessionPassword { where_from: username, password: new_password, };
+    
+    store.push(new_user_password);
 }
 
 #[test]
