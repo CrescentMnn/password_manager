@@ -37,13 +37,14 @@ impl std::fmt::Debug for SessionPassword {
 
 fn main() {
 
-    println!("+-----------------------------------+");
-    println!("+           Password Manager        +");
-    println!("+-----------------------------------+\n\n");
+    clear_screen();
+    println!("\t\t+=============================================+");
+    println!("\t\t+            Password Manager  v.1.0          +");
+    println!("\t\t+=============================================+\n\n\n");
 
     println!("This is a simple password manager program which lets users securely store, manage, 
-    and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, 
-    ensuring that user data is secure.\n\n");
+and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, 
+ensuring that user data is secure.\n\n");
     
     //main menu
     println!("1. Hash new password\n2. Exit\n");
@@ -91,6 +92,11 @@ fn main() {
 
 fn hash_new_password(store: &mut Vec<SessionPassword>){
 
+    clear_screen();
+    println!("\t\t+=============================================+");
+    println!("\t\t+               Hashing Passwords             +");
+    println!("\t\t+=============================================+\n\n\n");
+
     println!("\nYou will have to create a username and give a password for further reading and creating password.\n");
     
     //username and password for programm
@@ -117,7 +123,7 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
         store.push(new_user_password);
     }
 
-    println!("Now please enter how many passwords you wish to create (MAX 255): ");
+    println!("\nNow please enter how many passwords you wish to create (MAX 255): ");
 
     {
         //store # of passwords user wishes to create
@@ -134,7 +140,7 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
 
         for _i in 1..=passwords_to_create {
 
-            println!("Username/Url: ");
+            println!("\nUsername/Url: ");
             //create a buffer for username
             let mut buffer = String::new();
             io::stdin().read_line(&mut buffer).expect("(-) Failed at reading stdin");
@@ -147,14 +153,19 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
             io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
 
             let new_password = pass_buffer.trim().to_string();
+            let hashed_new_password = hash(new_password, DEFAULT_COST).expect("(-) Failed at hash of new password");
             
             //struct instance
-            let new_user_password = SessionPassword { where_from: username, password: new_password, };
+            let new_user_password = SessionPassword { where_from: username, password: hashed_new_password, };
             
             store.push(new_user_password);
 
         }
     }
+}
+
+fn clear_screen(){
+    for i in 1..=50 { println!("\n"); }
 }
 
 #[test]
