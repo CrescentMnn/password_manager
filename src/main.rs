@@ -3,6 +3,11 @@ extern crate bcrypt;
 use bcrypt::{hash, verify, DEFAULT_COST};
 
 fn main() {
+
+    println!("+-----------------------------------+");
+    println!("+           Password Manager        +");
+    println!("+-----------------------------------+");
+
     let test_password = "123123123";
 
     let hash_password = hash(test_password, DEFAULT_COST).expect("Failed to hash password");
