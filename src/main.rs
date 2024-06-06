@@ -1,4 +1,15 @@
 extern crate bcrypt;
+extern crate aes;
+extern crate block_modes;
+extern crate sha2;
+
+use aes::Aes256;
+use block_modes::{BlockMode, Cbc, block_padding::Pkcs7};
+use sha2::{Digest, Sha256};
+use std::env;
+use openssl::rand::rand_bytes;
+
+type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
 //cryptography crate
 use bcrypt::{hash, verify, DEFAULT_COST};
@@ -164,10 +175,76 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
     }
 }
 
-fn clear_screen(){
-    for i in 1..=50 { println!("\n"); }
+// Encrypts the text and prints the encrypted data in hexadecimal
+fn encrypt_text(key: &[u8], text: &str) -> String {
+    // Generate random IV
+    let mut iv = [0u8; 16];
+    rand_bytes(&mut iv).expect("Failed to generate random IV");
+
+    // Create the cipher
+    let cipher = Aes256Cbc::new_from_slices(&key, &iv).unwrap();
+
+    // Encrypt the text
+    let mut encrypted_data = cipher.encrypt_vec(text.as_bytes());
+    encrypted_data = [&iv[..], &encrypted_data[..]].concat();
+
+    // Print the encrypted data in hexadecimal
+    let encrypted_hex = hex::encode(encrypted_data);
+    println!("Encrypted data: {}", encrypted_hex);
+
+    encrypted_hex
 }
 
+// Decrypts the text and prints the decrypted data
+// Decrypts the text and returns the decrypted data
+fn decrypt_text(key: &[u8], text: &str) -> Result<String, String> {
+    // Parse the IV and ciphertext from the input
+    let data = match hex::decode(text) {
+        Ok(data) => data,
+        Err(_) => {
+            return Err("Invalid input data. Must be a valid hex-encoded string.".to_string());
+        }
+    };
+    let (iv, ciphertext) = data.split_at(16);
+
+    // Create the cipher
+    let cipher = Aes256Cbc::new_from_slices(&key, iv).unwrap();
+
+    // Decrypt the ciphertext
+    let decrypted_data = match cipher.decrypt_vec(ciphertext) {
+        Ok(data) => data,
+        Err(_) => {
+            return Err("Decryption failed. Ensure the provided password and encrypted data are correct.".to_string());
+        }
+    };
+
+    // Convert to a string and return
+    match String::from_utf8(decrypted_data) {
+        Ok(text) => Ok(text),
+        Err(_) => Err("Decrypted data contains invalid UTF-8 characters.".to_string()),
+    }
+}
+
+//asks for password, generates key and calls encrypt fn
+fn encrypt_new_password(){
+
+
+
+}
+
+//retrieves key and hex string to decrypt, calls decrypt fn
+fn decrypt_new_password(){
+    
+    
+
+}
+
+//clears the screen
+fn clear_screen(){
+    for _i in 1..=50 { println!("\n"); }
+}
+
+//test fn to check for bycrypt functioning
 #[test]
 fn test_hashing(){
 
@@ -202,3 +279,24 @@ fn test_hashing(){
     }
 
 }
+
+//test fn to assert encrypt and decrypt fns
+
+#[test]
+fn check_enc_dec() {
+    {
+        /*
+         *
+         *
+         *
+         * */
+        let test_password = "f3cYsJn$uHv*}';R{X?8@2";
+        let key = Sha256::digest("T[+U7m~qujn=HkbQcJ>`Y#".as_bytes());
+
+        let encrypted = encrypt_text(&key, test_password);
+        let decrypted = decrypt_text(&key, &encrypted).expect("Decryption failed");
+
+        assert_eq!(decrypted, test_password, "Encryption and decryption did not work correctly");
+    }
+}
+
