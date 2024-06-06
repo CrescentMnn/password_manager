@@ -5,3 +5,8 @@ edition = "2021"
 
 [dependencies]
 bcrypt = "0.15"
+aes = "0.7.5"
+block-modes = "0.8.1"
+sha2 = "0.10.0"
+hex = "0.4.3"
+openssl = "0.10.38"
