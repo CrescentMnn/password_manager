@@ -262,13 +262,46 @@ fn show_password_vector(vector: &Vec<SessionPassword>){
     println!("\t\t+=============================================+\n\n\n");
 
     for pass in vector {
+
+        //count how many chars in username
+        let char_count_user = pass.where_from.chars().count();
+        let char_count_pass = pass.password.chars().count();
         
-        println!("+==============================================+");
+        //string for pass ***
+        let mut string_for_privacy = String::new();
+
+        
+        for _ in 1..(53 - char_count_user){
+            string_for_privacy.push('*');
+        }
+
+        println!("+=======================================================+");
         //println!("+{}: {}+", pass.where_from, pass.password);
-        println!("+{}:       *********************************** +", pass.where_from);
-        println!("+==============================================+");
+        println!("+{}: {} +", pass.where_from, string_for_privacy);
+        println!("+=======================================================+\n");
 
     }
+    
+    {
+        println!("1. Reveal password\n2. Delete password\n3. Exit");
+        let mut buffer = String::new();
+        io::stdin.read_line(&mut buffer).expect("(-) Failed at readig stdin");
+
+        let menu_choice : u8; 
+        menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
+
+        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;)
+
+        if menu_choice == 1{
+            
+        }else if menu_choice == 2 {
+
+        }else{
+
+        }
+    }
+
+    
 
 }
 
