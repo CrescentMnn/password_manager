@@ -36,3 +36,22 @@ rand = "0.8.4"
 ```
 
 To get started with the project, you need to have [Rust](https://www.rust-lang.org/tools/install) and OpenSSL installed. If you don't have OpenSSL installed, you can install it using your system's package manager or download it from the [OpenSSL website](https://www.openssl.org/).
+
+Or use the needed installation commands for OpenSSL on different Linux distributions:
+
+## Debian/Ubuntu:
+
+```
+sudo apt install openssl
+```
+## Red Hat Enterprise Linux (RHEL)/CentOS/Fedora:
+
+```
+sudo yum install openssl
+```
+
+## Arch Linux:
+
+```
+sudo pacman -S openssl
+```
