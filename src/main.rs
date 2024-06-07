@@ -8,6 +8,8 @@ use block_modes::{BlockMode, Cbc, block_padding::Pkcs7};
 use sha2::{Digest, Sha256};
 use std::env;
 use openssl::rand::rand_bytes;
+use rand::{Rng, thread_rng};
+use rand::distributions::Alphanumeric;
 
 type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
@@ -66,8 +68,7 @@ ensuring that user data is secure.\n\n");
     let mut passwords_vector : Vec<SessionPassword> = Vec::new();
 
     //create a key for AES encryption
-    let key = Sha256::digest("w$+kaZ^N:_EHs,7eBb`VU=".as_bytes());
-
+    
     loop {
         //String for user input
         let mut user_input = String::new();
@@ -95,7 +96,7 @@ ensuring that user data is secure.\n\n");
 
     if menu_choice == 1 {
         //go to fn
-        hash_new_password(&mut passwords_vector, &key);
+        hash_new_password(&mut passwords_vector);
         println!("{:?}", passwords_vector);
     } else { 
         println!("Exiting....\n");
@@ -104,7 +105,7 @@ ensuring that user data is secure.\n\n");
     
 }
 
-fn hash_new_password(store: &mut Vec<SessionPassword>, key: &[u8]){
+fn hash_new_password(store: &mut Vec<SessionPassword>){
 
     clear_screen();
     println!("\t\t+=============================================+");
@@ -112,6 +113,12 @@ fn hash_new_password(store: &mut Vec<SessionPassword>, key: &[u8]){
     println!("\t\t+=============================================+\n\n\n");
 
     println!("\nYou will have to create a username and give a password for further reading and creating password.\n");
+
+
+    println!("\n\n\n\n\nRANDOM CHARS\n");
+    rand_chars();
+
+    println!("\n\n\n\n\n");
     
     //username and password for programm
     {
@@ -165,10 +172,12 @@ fn hash_new_password(store: &mut Vec<SessionPassword>, key: &[u8]){
 
             let mut pass_buffer = String::new();
             io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
+            
 
+            let key = Sha256::digest(rand_chars().as_bytes());
             let new_password = pass_buffer.trim().to_string();
             //let hashed_new_password = hash(new_password, DEFAULT_COST).expect("(-) Failed at hash of new password");
-            let encrypted_password = encrypt_text(key, &new_password);
+            let encrypted_password = encrypt_text(&key, &new_password);
             
             //struct instance
             let new_user_password = SessionPassword { where_from: username, password: encrypted_password, };
@@ -246,6 +255,14 @@ fn decrypt_new_password(){
 //clears the screen
 fn clear_screen(){
     for _i in 1..=50 { println!("\n"); }
+}
+
+fn rand_chars() -> String{
+    let mut rng = thread_rng();
+    let chars: String = (0..22).map(|_| rng.sample(Alphanumeric) as char).collect();
+    println!("Random chars: {}", chars);
+    
+    chars
 }
 
 //test fn to check for bycrypt functioning
