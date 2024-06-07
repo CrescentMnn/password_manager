@@ -16,8 +16,8 @@ This project is a simple password manager written for the command line interface
 To get started with the project, you need to have [Rust](https://www.rust-lang.org/tools/install) installed. Then, you can clone the repository and build the project.
 
 ```
-git clone https://github.com/yourusername/cli-password-manager.git
-cd cli-password-manager
+git clone https://github.com/CrescentMnn/password_manager.git
+cd password_manager
 cargo build
 ```
 ## Dependencies 
