@@ -53,8 +53,8 @@ fn main() {
     //vector for passwords
     let mut passwords_vector : Vec<SessionPassword> = Vec::new();
 
-    
     clear_screen();
+    loop {
     println!("\t\t+=============================================+");
     println!("\t\t+            Password Manager  v.1.0          +");
     println!("\t\t+=============================================+\n\n\n");
@@ -101,11 +101,14 @@ ensuring that user data is secure.\n\n");
             println!("{:?}", passwords_vector);
         } else if menu_choice == 2  {
             //reveal passwords
+            clear_screen();
             show_password_vector(&passwords_vector);
+            println!("!!!\n");
         } else {
             println!("Exiting....\n");
             return;
         }
+    }
 }
 
 fn hash_new_password(store: &mut Vec<SessionPassword>){
@@ -254,9 +257,17 @@ fn decrypt_new_password(){
 //Shows created/read vector and its corresponding username and where_from
 fn show_password_vector(vector: &Vec<SessionPassword>){
 
-    clear_screen();
+    println!("\t\t+=============================================+");
+    println!("\t\t+                Saved Passwords              +");
+    println!("\t\t+=============================================+\n\n\n");
+
     for pass in vector {
-        println!("{}: {}\n", pass.where_from, pass.password);
+        
+        println!("+==============================================+");
+        //println!("+{}: {}+", pass.where_from, pass.password);
+        println!("+{}:       *********************************** +", pass.where_from);
+        println!("+==============================================+");
+
     }
 
 }
