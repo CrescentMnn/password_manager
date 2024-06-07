@@ -41,7 +41,7 @@ impl std::fmt::Debug for SessionPassword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SessionPassword")
             .field("where_from", &self.where_from)
-            .field("password", &"***********") // Mask the password for security reasons
+            .field("password", &self.password) // Mask the password for security reasons
             .finish()
     }
 }
@@ -64,6 +64,9 @@ ensuring that user data is secure.\n\n");
 
     //vector for passwords
     let mut passwords_vector : Vec<SessionPassword> = Vec::new();
+
+    //create a key for AES encryption
+    let key = Sha256::digest("w$+kaZ^N:_EHs,7eBb`VU=".as_bytes());
 
     loop {
         //String for user input
@@ -92,7 +95,7 @@ ensuring that user data is secure.\n\n");
 
     if menu_choice == 1 {
         //go to fn
-        hash_new_password(&mut passwords_vector);
+        hash_new_password(&mut passwords_vector, &key);
         println!("{:?}", passwords_vector);
     } else { 
         println!("Exiting....\n");
@@ -101,7 +104,7 @@ ensuring that user data is secure.\n\n");
     
 }
 
-fn hash_new_password(store: &mut Vec<SessionPassword>){
+fn hash_new_password(store: &mut Vec<SessionPassword>, key: &[u8]){
 
     clear_screen();
     println!("\t\t+=============================================+");
@@ -164,10 +167,11 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
             io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
 
             let new_password = pass_buffer.trim().to_string();
-            let hashed_new_password = hash(new_password, DEFAULT_COST).expect("(-) Failed at hash of new password");
+            //let hashed_new_password = hash(new_password, DEFAULT_COST).expect("(-) Failed at hash of new password");
+            let encrypted_password = encrypt_text(key, &new_password);
             
             //struct instance
-            let new_user_password = SessionPassword { where_from: username, password: hashed_new_password, };
+            let new_user_password = SessionPassword { where_from: username, password: encrypted_password, };
             
             store.push(new_user_password);
 
