@@ -55,11 +55,23 @@ fn main() {
 
     clear_screen();
     loop {
-    println!("\t\t+=============================================+");
+    /*println!("\t\t+=============================================+");
     println!("\t\t+            Password Manager  v.1.0          +");
-    println!("\t\t+=============================================+\n\n\n");
+    println!("\t\t+=============================================+\n\n\n");*/
 
-    println!("This is a simple password manager program which lets users securely store, manage, 
+    println!(r" ______                                           __                                
+|   __ \.---.-.-----.-----.--.--.--.-----.----.--|  |                               
+|    __/|  _  |__ --|__ --|  |  |  |  _  |   _|  _  |                               
+|___|   |___._|_____|_____|________|_____|__| |_____|                               
+                                                                                    
+ _______                                                 ____      ______    ______ 
+|   |   |.---.-.-----.---.-.-----.-----.----.    .--.--.|_   |    |      |  |      |
+|       ||  _  |     |  _  |  _  |  -__|   _|    |  |  | _|  |_ __|  --  |__|  --  |
+|__|_|__||___._|__|__|___._|___  |_____|__|       \___/ |______|__|______|__|______|
+                           |_____|                                                  ");
+
+
+    println!("\n\n\nThis is a simple password manager program which lets users securely store, manage, 
 and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, 
 ensuring that user data is secure.\n\n");
     
@@ -67,6 +79,7 @@ ensuring that user data is secure.\n\n");
     println!("1. Hash new password\n2. Reveal Password\n3. Exit\n");
 
     let mut menu_choice : u8;
+    let mut key: 
  
     loop {
         //String for user input
@@ -248,14 +261,27 @@ fn encrypt_new_password(){
 }
 
 //retrieves key and hex string to decrypt, calls decrypt fn
-fn decrypt_new_password(){
+fn decrypt_new_password(key: &[u8], password: &str, pass_vec: &Vec<SessionPassword>) {
     
-    
+    //ask for user master password
+    println!("Please input your master password: {}\n", pass_vec[0].where_from);
 
+    let hash : &str = &pass_vec[0].password;
+    
+    loop {
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).expect("(-) Failed to read master password");
+
+        if buffer.trim() == "n" { return; }
+
+        let verify_result =  verify(buffer.trim(), hash).expect("(-) Failed to verify master password"); 
+
+        if verify_result == true { break; } else { println!("Incorrect master password, try again or press 'n' to quit"); }
+    }
 }
 
 //Shows created/read vector and its corresponding username and where_from
-fn show_password_vector(vector: &Vec<SessionPassword>){
+fn show_password_vector(key: &[u8], vector: &Vec<SessionPassword>){
 
     println!("\t\t+=============================================+");
     println!("\t\t+                Saved Passwords              +");
@@ -285,15 +311,15 @@ fn show_password_vector(vector: &Vec<SessionPassword>){
     {
         println!("1. Reveal password\n2. Delete password\n3. Exit");
         let mut buffer = String::new();
-        io::stdin.read_line(&mut buffer).expect("(-) Failed at readig stdin");
+        io::stdin().read_line(&mut buffer).expect("(-) Failed at readig stdin");
 
         let menu_choice : u8; 
         menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
 
-        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;)
+        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;}
 
         if menu_choice == 1{
-            
+           decrypt_new_password(); 
         }else if menu_choice == 2 {
 
         }else{
