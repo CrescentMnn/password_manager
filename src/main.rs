@@ -43,13 +43,17 @@ impl std::fmt::Debug for SessionPassword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SessionPassword")
             .field("where_from", &self.where_from)
-            .field("password", &self.password) // Mask the password for security reasons
+            .field("password", &"*************") // Mask the password for security reasons
             .finish()
     }
 }
 
 fn main() {
+    
+    //vector for passwords
+    let mut passwords_vector : Vec<SessionPassword> = Vec::new();
 
+    
     clear_screen();
     println!("\t\t+=============================================+");
     println!("\t\t+            Password Manager  v.1.0          +");
@@ -60,15 +64,10 @@ and retrieve passwords. This project uses the bcrypt library to hash and validat
 ensuring that user data is secure.\n\n");
     
     //main menu
-    println!("1. Hash new password\n2. Exit\n");
+    println!("1. Hash new password\n2. Reveal Password\n3. Exit\n");
 
     let mut menu_choice : u8;
-
-    //vector for passwords
-    let mut passwords_vector : Vec<SessionPassword> = Vec::new();
-
-    //create a key for AES encryption
-    
+ 
     loop {
         //String for user input
         let mut user_input = String::new();
@@ -76,7 +75,7 @@ ensuring that user data is secure.\n\n");
         io::stdin().read_line(&mut user_input).expect("(-) Failed to read line");
 
         /* 
-        
+            
         pub fn trim(&self) -> &str
 
         Returns a string slice with leading and trailing whitespace removed.
@@ -87,22 +86,26 @@ ensuring that user data is secure.\n\n");
 
         menu_choice = match user_input.trim().parse() { Ok(n) => n, Err(_) => { println!("(-) Not a valid number"); continue;} };
 
-        if menu_choice < 1 || menu_choice > 2 {
+        if menu_choice < 1 || menu_choice > 3 {
             println!("Number outside of bounds..... try again\n");
         } else {
             break;
         }
     }
 
-    if menu_choice == 1 {
-        //go to fn
-        hash_new_password(&mut passwords_vector);
-        println!("{:?}", passwords_vector);
-    } else { 
-        println!("Exiting....\n");
-        return;
-    }
     
+        if menu_choice == 1 {
+            //go to fn
+            hash_new_password(&mut passwords_vector);
+            clear_screen();
+            println!("{:?}", passwords_vector);
+        } else if menu_choice == 2  {
+            //reveal passwords
+            show_password_vector(&passwords_vector);
+        } else {
+            println!("Exiting....\n");
+            return;
+        }
 }
 
 fn hash_new_password(store: &mut Vec<SessionPassword>){
@@ -113,10 +116,6 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
     println!("\t\t+=============================================+\n\n\n");
 
     println!("\nYou will have to create a username and give a password for further reading and creating password.\n");
-
-
-    println!("\n\n\n\n\nRANDOM CHARS\n");
-    rand_chars();
 
     println!("\n\n\n\n\n");
     
@@ -249,6 +248,16 @@ fn encrypt_new_password(){
 fn decrypt_new_password(){
     
     
+
+}
+
+//Shows created/read vector and its corresponding username and where_from
+fn show_password_vector(vector: &Vec<SessionPassword>){
+
+    clear_screen();
+    for pass in vector {
+        println!("{}: {}\n", pass.where_from, pass.password);
+    }
 
 }
 
