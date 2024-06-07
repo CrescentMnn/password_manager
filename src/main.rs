@@ -291,7 +291,9 @@ fn check_enc_dec() {
     {
         /*
          *
-         *
+         * MISSING DOCUMENTATION FOR:
+         * ENCRYPT_VEC
+         * DECRYPT_VEC
          *
          * */
         let test_password = "f3cYsJn$uHv*}';R{X?8@2";
