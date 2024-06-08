@@ -2,6 +2,7 @@ extern crate bcrypt;
 extern crate aes;
 extern crate block_modes;
 extern crate sha2;
+extern crate csv;
 
 use aes::Aes256;
 use block_modes::{BlockMode, Cbc, block_padding::Pkcs7};
@@ -18,6 +19,7 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 
 //input and output library
 use std::io;
+use std::fs::File;
 
 //data structure for passwords
 struct SessionPassword {
@@ -79,7 +81,6 @@ ensuring that user data is secure.\n\n");
     println!("1. Hash new password\n2. Reveal Password\n3. Exit\n");
 
     let mut menu_choice : u8;
-    let mut key: 
  
     loop {
         //String for user input
@@ -134,6 +135,11 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
     println!("\nYou will have to create a username and give a password for further reading and creating password.\n");
 
     println!("\n\n\n\n\n");
+
+    let user_file = File::create("user_csv.csv").expect("(-) Failes at csv creation");
+    let mut writer = csv::Writer::from_writer(user_file);
+    //write headers for csv file
+    writer.write_record(&["where_from","password"]).expect("(-) Failed at writing to csv file");
     
     //username and password for programm
     {
@@ -157,6 +163,7 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
         let new_user_password = SessionPassword { where_from: username, password: hashed_user, };
         
         store.push(new_user_password);
+        writer.write_record(&[store[0].where_from.as_str(), store[0].password.as_str()]).expect("(-) Failed at vec writing csv");
     }
 
     println!("\nNow please enter how many passwords you wish to create (MAX 255): ");
@@ -174,7 +181,7 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
         //parse stidn 
         passwords_to_create = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
 
-        for _i in 1..=passwords_to_create {
+        for i in 1..=passwords_to_create {
 
             println!("\nUsername/Url: ");
             //create a buffer for username
@@ -199,6 +206,13 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
             
             store.push(new_user_password);
 
+
+            //writer.write_record(&[store[i].where_from, store[i].password]).expect("(-) Failed at vec writing csv");
+
+        }
+        
+        for storage in store {
+            writer.write_record(&[storage.where_from.clone(), storage.password.clone()]).expect("(-) Failed vec parsing to csv");
         }
     }
 }
@@ -261,7 +275,7 @@ fn encrypt_new_password(){
 }
 
 //retrieves key and hex string to decrypt, calls decrypt fn
-fn decrypt_new_password(key: &[u8], password: &str, pass_vec: &Vec<SessionPassword>) {
+fn decrypt_new_password(/*key: &[u8],*/ pass_vec: &Vec<SessionPassword>) {
     
     //ask for user master password
     println!("Please input your master password: {}\n", pass_vec[0].where_from);
@@ -281,7 +295,7 @@ fn decrypt_new_password(key: &[u8], password: &str, pass_vec: &Vec<SessionPasswo
 }
 
 //Shows created/read vector and its corresponding username and where_from
-fn show_password_vector(key: &[u8], vector: &Vec<SessionPassword>){
+fn show_password_vector(/*key: &[u8],*/ vector: &Vec<SessionPassword>){
 
     println!("\t\t+=============================================+");
     println!("\t\t+                Saved Passwords              +");
@@ -319,7 +333,7 @@ fn show_password_vector(key: &[u8], vector: &Vec<SessionPassword>){
         if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;}
 
         if menu_choice == 1{
-           decrypt_new_password(); 
+           //decrypt_new_password(); 
         }else if menu_choice == 2 {
 
         }else{
