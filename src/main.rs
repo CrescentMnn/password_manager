@@ -325,7 +325,8 @@ fn decrypt_new_password(pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>)
 
             let key = Sha256::digest((keychain[(menu_choice - 1) as usize]).as_bytes());
             let decrypted_password = &pass_vec[(menu_choice - 1) as usize].password;
-
+            
+            //print out decrypted and where_from addr
             match decrypt_text(&key, &decrypted_password) {
                 Ok(decrypted_text) => {
                     println!("+=======================================================+");
