@@ -2,7 +2,7 @@
 
 ## Description
 
-This project is a simple password manager written for the command line interface (CLI) to help me learn Rust. It lets users securely store, manage, and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, ensuring that user data is secure.
+This project is a simple password manager written for the command line interface (CLI) to help me learn Rust. It lets users securely store, manage, and retrieve passwords. This project uses the bcrypt library to hash and validate passwords, ensuring that user data is secure, it also uses the aess library to encrypt and decrypt passwords saved by the user.
 
 ## Features
 
