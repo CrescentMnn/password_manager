@@ -50,6 +50,9 @@ impl std::fmt::Debug for SessionPassword {
     }
 }
 
+
+                                                                                /* MAIN FUNCTION  */
+
 fn main() {
     
     //vector for passwords
@@ -124,6 +127,9 @@ ensuring that user data is secure.\n\n");
         }
     }
 }
+
+                                                                            /* HASH NEW PASSWORD MENU  */
+
 
 
 //Function to create user and encrypt rewuired number of passwords
@@ -204,7 +210,7 @@ fn hash_new_password(store: &mut Vec<SessionPassword>, keychain: &mut Vec<String
 
             let mut pass_buffer = String::new();
             io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
-            
+                    
             //creates a key using rand_chars()
             let key_string : String = rand_chars();
             let key = Sha256::digest(key_string.as_bytes());
@@ -229,6 +235,108 @@ fn hash_new_password(store: &mut Vec<SessionPassword>, keychain: &mut Vec<String
         }
     }
 }
+
+
+
+
+                                                                            /* REVEAL PASSWORD MENU  */
+
+//asks for password, generates key and calls encrypt fn
+fn encrypt_new_password(){
+
+
+
+}
+
+//retrieves key and hex string to decrypt, calls decrypt fn
+fn decrypt_new_password(pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>) {
+    // Ask for user master password
+    println!("Please input your master password for {}: ", pass_vec[0].where_from);
+
+    let hash: &str = &pass_vec[0].password;
+
+    loop {
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).expect("(-) Failed to read master password");
+
+        if buffer.trim() == "n" { return; }
+
+        let verify_result = verify(buffer.trim(), &hash).expect("(-) Failed to verify master password");
+
+        if verify_result {
+            println!("\nCorrect admin password\n");
+            println!("Which password do you want to reveal?\n");
+            print_saved_passwords(pass_vec);
+
+            let mut menu_choice = String::new();
+            io::stdin().read_line(&mut menu_choice).expect("(-) Failed to read input");
+            let menu_choice: u8 = match menu_choice.trim().parse() {
+                Ok(n) => n,
+                Err(_) => { println!("(-) Not a valid number"); return; }
+            };
+
+            if menu_choice == 1 { 
+                println!("Cannot reveal master password...\n"); 
+                return; 
+            }
+
+            if menu_choice < 1 || menu_choice > (pass_vec.len() as u8) { 
+                println!("(-) Number outside of bounds"); 
+                return; 
+            }
+
+            let key = Sha256::digest((keychain[(menu_choice - 1) as usize]).as_bytes());
+            let decrypted_password = &pass_vec[(menu_choice - 1) as usize].password;
+            
+            //match decrypted text and print both decrypted and where_from addr
+            match decrypt_text(&key, &decrypted_password) {
+                Ok(decrypted_text) => {
+                    println!("+=======================================================+");
+                    println!("+{}: {} +", pass_vec[(menu_choice - 1) as usize].where_from, decrypted_text);
+                    println!("+=======================================================+\n");
+                },
+                Err(e) => {
+                    println!("Decryption failed: {}", e);
+                }
+            }
+            break;
+        } else { 
+            println!("Incorrect master password, try again or press 'n' to quit.\n"); 
+        }
+    }
+}
+
+
+//Shows created/read vector and its corresponding username and where_from
+fn show_password_vector(/*key: &[u8],*/ vector: &Vec<SessionPassword>, keychain: &Vec<String>){
+        
+    print_saved_passwords(vector);
+
+    {
+        println!("1. Reveal password\n2. Delete password\n3. Exit");
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).expect("(-) Failed at readig stdin");
+
+        let menu_choice : u8; 
+        menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
+
+        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;}
+
+        if menu_choice == 1{
+           decrypt_new_password(vector, keychain); 
+        }else if menu_choice == 2 {
+
+        }else{
+
+        }
+    }
+
+    
+
+}
+
+                                                                            /* DECRYPTION AND ENCRYPTION FN */
+
 
 // Encrypts the text and prints the encrypted data in hexadecimal
 fn encrypt_text(key: &[u8], text: &str) -> String {
@@ -279,100 +387,11 @@ fn decrypt_text(key: &[u8], text: &str) -> Result<String, String> {
     }
 }
 
-//asks for password, generates key and calls encrypt fn
-fn encrypt_new_password(){
 
 
+                                                                            /* MISCELANEOUS FUNCTIONS */
 
-}
-
-//retrieves key and hex string to decrypt, calls decrypt fn
-fn decrypt_new_password(pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>) {
-    // Ask for user master password
-    println!("Please input your master password for {}: ", pass_vec[0].where_from);
-
-    let hash: &str = &pass_vec[0].password;
-
-    loop {
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).expect("(-) Failed to read master password");
-
-        if buffer.trim() == "n" { return; }
-
-        let verify_result = verify(buffer.trim(), &hash).expect("(-) Failed to verify master password");
-
-        if verify_result {
-            println!("\nCorrect admin password\n");
-            println!("Which password do you want to reveal?\n");
-            print_saved_passwords(pass_vec);
-
-            let mut menu_choice = String::new();
-            io::stdin().read_line(&mut menu_choice).expect("(-) Failed to read input");
-            let menu_choice: u8 = match menu_choice.trim().parse() {
-                Ok(n) => n,
-                Err(_) => { println!("(-) Not a valid number"); return; }
-            };
-
-            if menu_choice == 1 { 
-                println!("Cannot reveal master password...\n"); 
-                return; 
-            }
-
-            if menu_choice < 1 || menu_choice > (pass_vec.len() as u8) { 
-                println!("(-) Number outside of bounds"); 
-                return; 
-            }
-
-            let key = Sha256::digest((keychain[(menu_choice - 1) as usize]).as_bytes());
-            let decrypted_password = &pass_vec[(menu_choice - 1) as usize].password;
-            
-            //print out decrypted and where_from addr
-            match decrypt_text(&key, &decrypted_password) {
-                Ok(decrypted_text) => {
-                    println!("+=======================================================+");
-                    println!("+{}: {} +", pass_vec[(menu_choice - 1) as usize].where_from, decrypted_text);
-                    println!("+=======================================================+\n");
-                },
-                Err(e) => {
-                    println!("Decryption failed: {}", e);
-                }
-            }
-            break;
-        } else { 
-            println!("Incorrect master password, try again or press 'n' to quit.\n"); 
-        }
-    }
-}
-
-
-//Shows created/read vector and its corresponding username and where_from
-fn show_password_vector(/*key: &[u8],*/ vector: &Vec<SessionPassword>, keychain: &Vec<String>){
-        
-    print_saved_passwords(vector);
-
-    {
-        println!("1. Reveal password\n2. Delete password\n3. Exit");
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).expect("(-) Failed at readig stdin");
-
-        let menu_choice : u8; 
-        menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
-
-        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;}
-
-        if menu_choice == 1{
-           decrypt_new_password(vector, keychain); 
-        }else if menu_choice == 2 {
-
-        }else{
-
-        }
-    }
-
-    
-
-}
-
+//print out saved passwords as a function
 fn print_saved_passwords(vector: &Vec<SessionPassword>){
     
     println!("\t\t+=============================================+");
@@ -416,6 +435,9 @@ fn rand_chars() -> String{
     chars
 }
 
+
+
+                                                                            /*  TEST FUNCTIONS   */
 //test fn to check for bycrypt functioning
 #[test]
 fn test_hashing(){
