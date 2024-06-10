@@ -55,11 +55,11 @@ fn main() {
     //vector for passwords
     let mut passwords_vector : Vec<SessionPassword> = Vec::new();
 
+    //vector for keys TEMPORAL
+    let mut key_vector : Vec<String> = Vec::new();
+
     clear_screen();
     loop {
-    /*println!("\t\t+=============================================+");
-    println!("\t\t+            Password Manager  v.1.0          +");
-    println!("\t\t+=============================================+\n\n\n");*/
 
     println!(r" ______                                           __                                
 |   __ \.---.-.-----.-----.--.--.--.-----.----.--|  |                               
@@ -110,13 +110,13 @@ ensuring that user data is secure.\n\n");
     
         if menu_choice == 1 {
             //go to fn
-            hash_new_password(&mut passwords_vector);
+            hash_new_password(&mut passwords_vector, &mut key_vector);
             clear_screen();
             println!("{:?}", passwords_vector);
         } else if menu_choice == 2  {
             //reveal passwords
             clear_screen();
-            show_password_vector(&passwords_vector);
+            show_password_vector(&passwords_vector, &key_vector);
             println!("!!!\n");
         } else {
             println!("Exiting....\n");
@@ -125,7 +125,9 @@ ensuring that user data is secure.\n\n");
     }
 }
 
-fn hash_new_password(store: &mut Vec<SessionPassword>){
+
+//Function to create user and encrypt rewuired number of passwords
+fn hash_new_password(store: &mut Vec<SessionPassword>, keychain: &mut Vec<String>){
 
     clear_screen();
     println!("\t\t+=============================================+");
@@ -135,13 +137,15 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
     println!("\nYou will have to create a username and give a password for further reading and creating password.\n");
 
     println!("\n\n\n\n\n");
-
+    
+    //creates csv file for user passwords
     let user_file = File::create("user_csv.csv").expect("(-) Failes at csv creation");
     let mut writer = csv::Writer::from_writer(user_file);
+
     //write headers for csv file
     writer.write_record(&["where_from","password"]).expect("(-) Failed at writing to csv file");
     
-    //username and password for programm
+    //Creates a master user and hashed password for further authentication
     {
         println!("\nPlease input a username: ");
         //create a buffer for username
@@ -164,8 +168,12 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
         
         store.push(new_user_password);
         writer.write_record(&[store[0].where_from.as_str(), store[0].password.as_str()]).expect("(-) Failed at vec writing csv");
+
+        //initiate keychain w 0 value
+        keychain.push("000".to_string());
     }
 
+    //stores given number of passwords in a vec<SessionPasswords> SEE STRUCT
     println!("\nNow please enter how many passwords you wish to create (MAX 255): ");
 
     {
@@ -180,8 +188,10 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
         // menu_choice = match user_input.trim().parse() { Ok(n) => n, Err(_) => { println!("(-) Not a valid number"); continue;} };
         //parse stidn 
         passwords_to_create = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
+        
 
-        for i in 1..=passwords_to_create {
+        //create passwords_to_create num of passwords, from 1 to n
+        for _i in 1..=passwords_to_create {
 
             println!("\nUsername/Url: ");
             //create a buffer for username
@@ -195,22 +205,25 @@ fn hash_new_password(store: &mut Vec<SessionPassword>){
             let mut pass_buffer = String::new();
             io::stdin().read_line(&mut pass_buffer).expect("(-) Failed at reading stdin");
             
+            //creates a key using rand_chars()
+            let key_string : String = rand_chars();
+            let key = Sha256::digest(key_string.as_bytes());
 
-            let key = Sha256::digest(rand_chars().as_bytes());
             let new_password = pass_buffer.trim().to_string();
+
             //let hashed_new_password = hash(new_password, DEFAULT_COST).expect("(-) Failed at hash of new password");
             let encrypted_password = encrypt_text(&key, &new_password);
             
-            //struct instance
+            //fills struct instance with user given values (stdin())
             let new_user_password = SessionPassword { where_from: username, password: encrypted_password, };
             
+            //pushes value to vec<>
             store.push(new_user_password);
 
-
-            //writer.write_record(&[store[i].where_from, store[i].password]).expect("(-) Failed at vec writing csv");
-
+            keychain.push(key_string);
         }
         
+        //itterates over vec and writes the records to the csv file created ABOVE
         for storage in store {
             writer.write_record(&[storage.where_from.clone(), storage.password.clone()]).expect("(-) Failed vec parsing to csv");
         }
@@ -238,7 +251,6 @@ fn encrypt_text(key: &[u8], text: &str) -> String {
 }
 
 // Decrypts the text and prints the decrypted data
-// Decrypts the text and returns the decrypted data
 fn decrypt_text(key: &[u8], text: &str) -> Result<String, String> {
     // Parse the IV and ciphertext from the input
     let data = match hex::decode(text) {
@@ -275,7 +287,7 @@ fn encrypt_new_password(){
 }
 
 //retrieves key and hex string to decrypt, calls decrypt fn
-fn decrypt_new_password(/*key: &[u8],*/ pass_vec: &Vec<SessionPassword>) {
+fn decrypt_new_password(/*key: &[u8],*/ pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>) {
     
     //ask for user master password
     println!("Please input your master password: {}\n", pass_vec[0].where_from);
@@ -288,15 +300,70 @@ fn decrypt_new_password(/*key: &[u8],*/ pass_vec: &Vec<SessionPassword>) {
 
         if buffer.trim() == "n" { return; }
 
-        let verify_result =  verify(buffer.trim(), hash).expect("(-) Failed to verify master password"); 
+        let verify_result =  verify(buffer.trim(), &hash).expect("(-) Failed to verify master password"); 
 
-        if verify_result == true { break; } else { println!("Incorrect master password, try again or press 'n' to quit"); }
+        if verify_result == true { 
+            println!("\nCorrect admin password\n");
+            println!("Which password do you want to reveal?\n");
+            print_saved_passwords(pass_vec);
+            
+            let menu_choice : u8;
+            let mut buffer = String::new();
+
+            io::stdin().read_line(&mut buffer).expect("(-) Failed stdin");
+            menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return; } };
+            
+            if menu_choice == 1 { println!("Cannot reveal master password...\n"); return; }
+
+            if menu_choice < 1 || menu_choice > (pass_vec.len()) as u8 { println!("(-) Number outside of bounds"); return; }       
+
+            let key = Sha256::digest((keychain[((menu_choice)-1) as usize]).as_bytes());
+            //let decrypted_password = hex::decode (&pass_vec[(menu_choice-1) as usize].password);
+            let decrypted_password = &pass_vec[((menu_choice)-1) as usize].password;
+
+            let mut get_decryption = decrypt_text(&key, &decrypted_password);
+
+            println!("+=======================================================+");
+            //println!("+{}: {}+", pass.where_from, pass.password);
+            println!("+{}: {} +", pass_vec[((menu_choice)-1) as usize].where_from, pass_vec[(menu_choice-1) as usize].password);
+            println!("+=======================================================+\n");
+            
+            break; 
+        }else { println!("Incorrect master password, try again or press 'n' to quit.\n"); }
     }
 }
 
-//Shows created/read vector and its corresponding username and where_from
-fn show_password_vector(/*key: &[u8],*/ vector: &Vec<SessionPassword>){
 
+//Shows created/read vector and its corresponding username and where_from
+fn show_password_vector(/*key: &[u8],*/ vector: &Vec<SessionPassword>, keychain: &Vec<String>){
+        
+    print_saved_passwords(vector);
+
+    {
+        println!("1. Reveal password\n2. Delete password\n3. Exit");
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).expect("(-) Failed at readig stdin");
+
+        let menu_choice : u8; 
+        menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
+
+        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;}
+
+        if menu_choice == 1{
+           decrypt_new_password(vector, keychain); 
+        }else if menu_choice == 2 {
+
+        }else{
+
+        }
+    }
+
+    
+
+}
+
+fn print_saved_passwords(vector: &Vec<SessionPassword>){
+    
     println!("\t\t+=============================================+");
     println!("\t\t+                Saved Passwords              +");
     println!("\t\t+=============================================+\n\n\n");
@@ -321,28 +388,6 @@ fn show_password_vector(/*key: &[u8],*/ vector: &Vec<SessionPassword>){
         println!("+=======================================================+\n");
 
     }
-    
-    {
-        println!("1. Reveal password\n2. Delete password\n3. Exit");
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).expect("(-) Failed at readig stdin");
-
-        let menu_choice : u8; 
-        menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return;} };
-
-        if menu_choice < 1 || menu_choice > 3 { println!("(-) Input outside of bounds"); return;}
-
-        if menu_choice == 1{
-           //decrypt_new_password(); 
-        }else if menu_choice == 2 {
-
-        }else{
-
-        }
-    }
-
-    
-
 }
 
 //clears the screen
@@ -350,6 +395,8 @@ fn clear_screen(){
     for _i in 1..=50 { println!("\n"); }
 }
 
+//Returns a randomly generated set of chars as a String using rand::distributions::Alphanumeric
+//SEE ABOVE
 fn rand_chars() -> String{
     let mut rng = thread_rng();
     let chars: String = (0..22).map(|_| rng.sample(Alphanumeric) as char).collect();
