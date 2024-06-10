@@ -287,49 +287,59 @@ fn encrypt_new_password(){
 }
 
 //retrieves key and hex string to decrypt, calls decrypt fn
-fn decrypt_new_password(/*key: &[u8],*/ pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>) {
-    
-    //ask for user master password
-    println!("Please input your master password: {}\n", pass_vec[0].where_from);
+fn decrypt_new_password(pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>) {
+    // Ask for user master password
+    println!("Please input your master password for {}: ", pass_vec[0].where_from);
 
-    let hash : &str = &pass_vec[0].password;
-    
+    let hash: &str = &pass_vec[0].password;
+
     loop {
         let mut buffer = String::new();
         io::stdin().read_line(&mut buffer).expect("(-) Failed to read master password");
 
         if buffer.trim() == "n" { return; }
 
-        let verify_result =  verify(buffer.trim(), &hash).expect("(-) Failed to verify master password"); 
+        let verify_result = verify(buffer.trim(), &hash).expect("(-) Failed to verify master password");
 
-        if verify_result == true { 
+        if verify_result {
             println!("\nCorrect admin password\n");
             println!("Which password do you want to reveal?\n");
             print_saved_passwords(pass_vec);
-            
-            let menu_choice : u8;
-            let mut buffer = String::new();
 
-            io::stdin().read_line(&mut buffer).expect("(-) Failed stdin");
-            menu_choice = match buffer.trim().parse() { Ok(n) => n, Err(_) => {println!("(-) Not a valid number"); return; } };
-            
-            if menu_choice == 1 { println!("Cannot reveal master password...\n"); return; }
+            let mut menu_choice = String::new();
+            io::stdin().read_line(&mut menu_choice).expect("(-) Failed to read input");
+            let menu_choice: u8 = match menu_choice.trim().parse() {
+                Ok(n) => n,
+                Err(_) => { println!("(-) Not a valid number"); return; }
+            };
 
-            if menu_choice < 1 || menu_choice > (pass_vec.len()) as u8 { println!("(-) Number outside of bounds"); return; }       
+            if menu_choice == 1 { 
+                println!("Cannot reveal master password...\n"); 
+                return; 
+            }
 
-            let key = Sha256::digest((keychain[((menu_choice)-1) as usize]).as_bytes());
-            //let decrypted_password = hex::decode (&pass_vec[(menu_choice-1) as usize].password);
-            let decrypted_password = &pass_vec[((menu_choice)-1) as usize].password;
+            if menu_choice < 1 || menu_choice > (pass_vec.len() as u8) { 
+                println!("(-) Number outside of bounds"); 
+                return; 
+            }
 
-            let mut get_decryption = decrypt_text(&key, &decrypted_password);
+            let key = Sha256::digest((keychain[(menu_choice - 1) as usize]).as_bytes());
+            let decrypted_password = &pass_vec[(menu_choice - 1) as usize].password;
 
-            println!("+=======================================================+");
-            //println!("+{}: {}+", pass.where_from, pass.password);
-            println!("+{}: {} +", pass_vec[((menu_choice)-1) as usize].where_from, pass_vec[(menu_choice-1) as usize].password);
-            println!("+=======================================================+\n");
-            
-            break; 
-        }else { println!("Incorrect master password, try again or press 'n' to quit.\n"); }
+            match decrypt_text(&key, &decrypted_password) {
+                Ok(decrypted_text) => {
+                    println!("+=======================================================+");
+                    println!("+{}: {} +", pass_vec[(menu_choice - 1) as usize].where_from, decrypted_text);
+                    println!("+=======================================================+\n");
+                },
+                Err(e) => {
+                    println!("Decryption failed: {}", e);
+                }
+            }
+            break;
+        } else { 
+            println!("Incorrect master password, try again or press 'n' to quit.\n"); 
+        }
     }
 }
 
