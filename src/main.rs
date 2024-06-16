@@ -115,12 +115,10 @@ ensuring that user data is secure.\n\n");
             //go to fn
             hash_new_password(&mut passwords_vector, &mut key_vector);
             clear_screen();
-            println!("{:?}", passwords_vector);
         } else if menu_choice == 2  {
             //reveal passwords
             clear_screen();
             show_password_vector(&passwords_vector, &key_vector);
-            println!("!!!\n");
         } else {
             println!("Exiting....\n");
             return;
@@ -291,6 +289,11 @@ fn decrypt_new_password(pass_vec: &Vec<SessionPassword>, keychain: &Vec<String>)
             //match decrypted text and print both decrypted and where_from addr
             match decrypt_text(&key, &decrypted_password) {
                 Ok(decrypted_text) => {
+                    
+                    println!("\t\t+=============================================+");
+                    println!("\t\t+              Revealed Password              +");
+                    println!("\t\t+=============================================+\n\n\n");
+
                     println!("+=======================================================+");
                     println!("+{}: {} +", pass_vec[(menu_choice - 1) as usize].where_from, decrypted_text);
                     println!("+=======================================================+\n");
@@ -419,6 +422,7 @@ fn print_saved_passwords(vector: &Vec<SessionPassword>){
 
     }
 }
+
 
 //clears the screen
 fn clear_screen(){
